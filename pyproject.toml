@@ -8,7 +8,7 @@ authors = [
  { name="Gosuddin Kamaruddin Siddiqi", email="gosuddin@uw.edu" }
 ]
 
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
  "networkx>=3.5",
  "matplotlib>=3.10.8",
@@ -18,3 +18,10 @@ dependencies = [
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["folbench", "folbench.metrics"]
+
+[tool.setuptools.package-dir]
+"folbench" = "."
+"folbench.metrics" = "metrics"
