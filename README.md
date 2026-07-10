@@ -1,4 +1,4 @@
-# FOLBench: A Benchmark for Evaluating Natural Language from a Logical Coherence and Correctness POV
+# FOLBench: A Logic-Grounded Evaluation Suite for Evaluating Open-Ended Responses using Graph-Based Semantic Metrics on First-Order Logic form of Natural Language
 
 FOLBench is an evaluation suite for assessing the quality of Logical Coherence and Correctness by feeding First-Order Logic (FOL) of the corresponding Natural Language. It provides a deterministic, reproducible, and multi-faceted framework for measuring how well logically aligned are they in graph structures.
 
