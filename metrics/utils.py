@@ -1,3 +1,4 @@
+from networkx.algorithms.flow import networksimplex
 import networkx as nx
 import re
 import uuid
@@ -58,122 +59,6 @@ def parse_predicate(formula):
         args.append(current.strip())
 
     return pred, args
-
-# def build_graph(formula, G, incoming=None, incoming_label=None, bound_vars=None):
-#     if bound_vars is None:
-#         bound_vars = {}
-
-#     formula = strip_outer_parens(formula)
-
-#     # 1. Quantifiers
-#     q = re.match(r'^(∀|∃)(\w+)\s*(.*)$', formula)
-#     if q:
-#         quant, var, rest = q.groups()
-#         qid = f"{quant}{var}_{uid()}"
-#         G.add_node(qid, label=f"{quant}{var}", type="quantifier")
-
-#         # new variable instance
-#         var_inst = new_var_instance(var)
-#         G.add_node(var_inst, label=var, type="variable")
-
-#         # quantifier binds this instance
-#         G.add_edge(qid, var_inst, label="binds")
-
-#         # update bound vars
-#         new_bound = bound_vars.copy()
-#         new_bound[var] = var_inst
-
-#         # connect quantifier to parent
-#         if incoming:
-#             G.add_edge(incoming, qid, label=incoming_label)
-
-#         return build_graph(rest.strip(), G, qid, "scope", new_bound)
-
-#     # 2. Negation
-#     if formula.startswith("¬"):
-#         nid = f"¬_{uid()}"
-#         G.add_node(nid, label="¬", type="connective")
-#         if incoming:
-#             G.add_edge(incoming, nid, label=incoming_label)
-#         return build_graph(formula[1:].strip(), G, nid, "negates", bound_vars)
-
-#     # 3. Binary connectives
-#     for op in ["→", "∨", "∧"]:
-#         parts = split_top_level(formula, op)
-#         if parts:
-#             left, right = parts
-#             # build left and right subgraphs
-#             left_node = build_graph(left, G, None, None, bound_vars)
-#             right_node = build_graph(right, G, None, None, bound_vars)
-
-#             # connect predicates via edge
-#             G.add_edge(left_node, right_node, label=op)
-
-#             # if parent exists, attach the rightmost node upward
-#             if incoming:
-#                 G.add_edge(incoming, right_node, label=incoming_label)
-
-#             return right_node
-
-#     # 4. Predicate or atom
-#     pred, args = parse_predicate(formula)
-#     node_id = f"{pred}_{uid()}"
-#     G.add_node(node_id, label=pred, type="predicate")
-
-#     if incoming:
-#         G.add_edge(incoming, node_id, label=incoming_label)
-
-#     # add arguments
-#     for i, arg in enumerate(args):
-#         if arg in bound_vars:
-#             # create a new instance of the bound variable
-#             var_inst = new_var_instance(arg)
-#             G.add_node(var_inst, label=arg, type="variable")
-
-#             # connect to predicate
-#             G.add_edge(node_id, var_inst, label=f"arg{i+1}")
-
-#             # connect variable instances to show semantic relation
-#             G.add_edge(bound_vars[arg], var_inst, label="coexists")
-
-#         else:
-#             # constant
-#             G.add_node(arg, label=arg, type="constant")
-#             G.add_edge(node_id, arg, label=f"arg{i+1}")
-
-#     return node_id
-
-# def tokenize_fol(s: str):
-#     token_spec = [
-#         (r'\s+', None),
-#         (r'∀|∃', 'QUANT'),
-#         (r'¬', 'NOT'),
-#         (r'∧', 'AND'),
-#         (r'∨', 'OR'),
-#         (r'→', 'IMPLIES'),
-#         (r'↔', 'IFF'),
-#         (r'⊕', 'XOR'),
-#         (r'\(', 'LPAREN'),
-#         (r'\)', 'RPAREN'),
-#         (r',', 'COMMA'),
-#         (r'[A-Z][A-Za-z0-9_]*', 'PRED'), # Predicates, constants
-#         (r'[a-z][A-Za-z0-9_]*', 'VAR'), # Variables
-#     ]
-
-#     tokens = []
-#     i = 0
-#     while i < len(s):
-#         #print(s[i])
-#         for pattern, tag in token_spec:
-#             m = re.match(pattern, s[i:])
-#             if m:
-#                 if tag:
-#                     tokens.append((tag, m.group(0)))
-#                 i += len(m.group(0))
-#                 break
-#         else:
-#             raise ValueError(f"Unexpected character: {s[i]}")
-#     return tokens
 
 def tokenize_fol(s: str):
     token_spec = [
@@ -325,82 +210,6 @@ def parse_fol(tokens):
 
     return parse_iff()
 
-# def parse_fol(tokens):
-#     tokens = tokens[::-1] # reverse for efficient pop()
-
-#     def peek():
-#         return tokens[-1] if tokens else None
-
-#     def pop():
-#         return tokens.pop()
-
-#     def parse_expr():
-#         tok = peek()
-
-#         # Parenthesized expression
-#         if tok and tok[0] == "LPAREN":
-#             pop()
-#             expr = parse_expr()
-#             if pop()[0] != "RPAREN":
-#                 raise ValueError("Missing )")
-#             return expr
-
-#         # Quantifier
-#         if tok and tok[0] == "QUANT":
-#             quant = pop()[1]
-#             var = parse_atom()
-#             body = parse_expr()
-#             return ("forall" if quant == "∀" else "exists", var, body)
-
-#         # Unary NOT
-#         if tok and tok[0] == "NOT":
-#             pop()
-#             return ("not", parse_expr())
-
-#         # Parse left side
-#         left = parse_atom()
-
-#         # Binary operators
-#         tok = peek()
-#         if tok and tok[0] in ("AND", "OR", "IMPLIES", "IFF", "XOR"):
-#             op_map = {
-#                 "AND": "and",
-#                 "OR": "or",
-#                 "IMPLIES": "implies",
-#                 "IFF": "iff",
-#                 "XOR": "xor"
-#             }
-#             op = op_map[pop()[0]]
-#             right = parse_expr()
-#             return (op, left, right)
-
-#         return left
-
-#     def parse_atom():
-#         tok = peek()
-
-#         if tok[0] == "VAR":
-#             return pop()[1]
-
-#         if tok[0] == "PRED":
-#             name = pop()[1]
-#             args = []
-#             if peek() and peek()[0] == "LPAREN":
-#                 pop()
-#                 while True:
-#                     args.append(parse_expr())
-#                     if peek() and peek()[0] == "COMMA":
-#                         pop()
-#                         continue
-#                     break
-#                 if pop()[0] != "RPAREN":
-#                     raise ValueError("Missing ) in predicate args")
-#             return tuple([name] + args)
-
-#         raise ValueError(f"Unexpected token: {tok}")
-
-#     return parse_expr()
-
 def build_graph_from_ast(expr, G=None, parent=None, edge_type=None, role=None, counter=[0]):
     if G is None:
         G = nx.DiGraph()
@@ -468,69 +277,295 @@ def build_graph(fol_string: str) -> nx.DiGraph:
     G.nodes[root]["is_root"] = True
     return G
 
-# def build_graph_from_ast(expr, G=None, parent=None, edge_type=None, role=None, counter=[0]):
-#     if G is None:
-#         G = nx.DiGraph()
+def tokenize_fol_2(s: str):
+    token_spec = [
+        (r'\s+', None),
 
-#     def new_id():
-#         counter[0] += 1
-#         return f"n{counter[0]}"
+        # Quantifiers
+        (r'∀|∃', 'QUANT'),
+        (r'forall|exists', 'QUANT'),
 
-#     # Variable or constant
-#     if isinstance(expr, str):
-#         nid = new_id()
-#         ntype = "variable" if expr.islower() else "constant"
-#         G.add_node(nid, type=ntype, label=expr)
-#         if parent:
-#             G.add_edge(parent, nid, type=edge_type, role=role)
-#         return nid, G
+        # Logical operators
+        (r'\¬', 'NOT'),
+        (r'\∧', 'AND'),
+        (r'\∨', 'OR'),
+        (r'\→', 'IMPLIES'),
+        (r'\↔', 'IFF'),
+        (r'\⟷', 'IFF'),
+        (r'\⊕', 'XOR'),
+        (r'not', 'NOT'),
+        (r'and', 'AND'),
+        (r' or ', 'OR'),
+        (r'implies', 'IMPLIES'),
+        (r'iff', 'IFF'),
+        (r'xor', 'XOR'),
 
-#     op = expr[0]
+        # Equality
+        (r'=', 'EQ'),
+        (r'!=|≠', 'NEQ'),
 
-#     # Quantifier
-#     if op in ("forall", "exists"):
-#         nid = new_id()
-#         G.add_node(nid, type="quantifier", label=op)
+        # Parentheses + comma
+        (r'\(', 'LPAREN'),
+        (r'\)', 'RPAREN'),
+        (r',', 'COMMA'),
 
-#         var = expr[1]
-#         var_id, G = build_graph_from_ast(var, G, parent=nid, edge_type="binding")
+        # Quoted strings → treat as constants
+        (r'"[^"]*"', 'STRING'),
 
-#         body = expr[2]
-#         body_id, G = build_graph_from_ast(body, G, parent=nid, edge_type="scope")
+        # Numbers → convert to numXXXX
+        (r'\d+', 'NUMBER'),
 
-#         if parent:
-#             G.add_edge(parent, nid, type=edge_type, role=role)
-#         return nid, G
+        # Predicates (uppercase)
+        (r'[A-Z][A-Za-z0-9_.-]*', 'PRED'),
 
-#     # Connectives (including xor, iff)
-#     if op in ("and", "or", "not", "implies", "xor", "iff"):
-#         nid = new_id()
-#         G.add_node(nid, type="connective", label=op)
+        # Lowercase constants (multi‑char)
+        (r'[a-z][a-zA-Z0-9_.-]+', 'CONST'),
 
-#         for child in expr[1:]:
-#             child_id, G = build_graph_from_ast(child, G, parent=nid, edge_type="logical")
+        # Variables (single lowercase letter)
+        (r'[a-zA-Z]', 'VAR'),
 
-#         if parent:
-#             G.add_edge(parent, nid, type=edge_type, role=role)
-#         return nid, G
+    ]
 
-#     # Predicate
-#     nid = new_id()
-#     G.add_node(nid, type="predicate", label=op)
+    tokens = []
+    i = 0
+    while i < len(s):
+        for pattern, tag in token_spec:
+            m = re.match(pattern, s[i:])
+            if m:
+                if tag:
+                    tokens.append((tag, m.group(0)))
+                i += len(m.group(0))
+                break
+        else:
+            raise ValueError(f"Unexpected character: {s[i]}")
+    return tokens
+    
+def merge_constants_in_args(tokens):
+    merged = []
+    i = 0
 
-#     for i, arg in enumerate(expr[1:]):
-#         arg_id, G = build_graph_from_ast(arg, G)
-#         G.add_edge(nid, arg_id, type="arg", role=f"arg{i}")
+    while i < len(tokens):
+        tag, val = tokens[i]
 
-#     if parent:
-#         G.add_edge(parent, nid, type=edge_type, role=role)
+        # Only merge inside predicate argument lists
+        if tag == "CONST":
+            new_val = val
+            j = i + 1
 
-#     return nid, G
+            # Merge following CONST or NUMBER tokens
+            while j < len(tokens) and tokens[j][0] in ("CONST", "NUMBER"):
+                new_val += tokens[j][1]
+                j += 1
 
+            merged.append(("CONST", new_val))
+            i = j
+            continue
 
-# def build_graph(fol_string: str) -> nx.DiGraph:
-#     tokens = tokenize_fol(fol_string)
-#     ast = parse_fol(tokens)
-#     root, G = build_graph_from_ast(ast)
-#     G.nodes[root]["is_root"] = True
-#     return G
+        merged.append((tag, val))
+        i += 1
+
+    return merged
+    
+def parse_fol_2(tokens):
+    tokens = tokens[::-1]
+
+    def peek(): return tokens[-1] if tokens else None
+    def pop(): return tokens.pop()
+
+    def parse_primary():
+        tok = peek()
+
+        # Parenthesized expression
+        if tok and tok[0] == "LPAREN":
+            pop()
+            expr = parse_iff()
+            if pop()[0] != "RPAREN":
+                raise ValueError("Missing )")
+            return expr
+
+        # Quantifier
+        if tok and tok[0] == "QUANT":
+            quant = pop()[1]
+            var = parse_primary()
+            body = parse_primary()
+            return ("forall" if quant in ("∀", "forall") else "exists", var, body)
+
+        # NOT
+        if tok and tok[0] == "NOT":
+            pop()
+            return ("not", parse_primary())
+
+        return parse_atom()
+    
+    def parse_atom():
+        tok = peek()
+    
+        # Variables
+        if tok[0] == "VAR":
+            return pop()[1]
+    
+        # Constants
+        if tok[0] == "CONST":
+            return pop()[1]
+    
+        # Numbers
+        if tok[0] == "NUMBER":
+            return "num" + pop()[1]
+    
+        # Strings
+        if tok[0] == "STRING":
+            val = pop()[1][1:-1]
+            return val
+    
+        # Predicates
+        if tok[0] == "PRED":
+            name = pop()[1]
+            args = []
+            if peek() and peek()[0] == "LPAREN":
+                pop()  # '('
+    
+                # ---- first argument: parsed normally ----
+                if peek() and peek()[0] != "RPAREN":
+                    first_arg = parse_iff()
+                    args.append(first_arg)
+    
+                # ---- remaining stuff: merged into one constant ----
+                rest_tokens = []
+                while peek() and peek()[0] != "RPAREN":
+                    tag, val = pop()
+                    if tag in ("COMMA",):
+                        continue
+                    rest_tokens.append(val)
+    
+                if rest_tokens:
+                    merged = "".join(rest_tokens)
+                    args.append(merged)
+    
+                if not peek() or pop()[0] != "RPAREN":
+                    raise ValueError("Missing ) in predicate args")
+    
+            return tuple([name] + args)
+
+    # Precedence climbing
+    def parse_eq():
+        left = parse_primary()
+        while peek() and peek()[0] in ("EQ", "NEQ"):
+            op = pop()[0]
+            op = "=" if op == "EQ" else "!="
+            right = parse_primary()
+            left = (op, left, right)
+        return left
+
+    def parse_and():
+        left = parse_eq()
+        while peek() and peek()[0] == "AND":
+            pop()
+            right = parse_eq()
+            left = ("and", left, right)
+        return left
+
+    def parse_or():
+        left = parse_and()
+        while peek() and peek()[0] == "OR":
+            pop()
+            right = parse_and()
+            left = ("or", left, right)
+        return left
+
+    def parse_xor():
+        left = parse_or()
+        while peek() and peek()[0] == "XOR":
+            pop()
+            right = parse_or()
+            left = ("xor", left, right)
+        return left
+
+    def parse_implies():
+        left = parse_xor()
+        while peek() and peek()[0] == "IMPLIES":
+            pop()
+            right = parse_xor()
+            left = ("implies", left, right)
+        return left
+
+    def parse_iff():
+        left = parse_implies()
+        while peek() and peek()[0] == "IFF":
+            pop()
+            right = parse_implies()
+            left = ("iff", left, right)
+        return left
+
+    return parse_iff()
+
+def build_graph_from_ast_2(expr, G=None, parent=None, edge_type=None, role=None, counter=[0]):
+
+    if G is None:
+        G = nx.DiGraph()
+
+    def new_id():
+        counter[0] += 1
+        return f"n{counter[0]}"
+
+    # Variable or constant
+    if isinstance(expr, str):
+        nid = new_id()
+        ntype = "variable" if expr.islower() and len(expr) == 1 else "constant"
+        G.add_node(nid, type=ntype, label=expr)
+        if parent:
+            G.add_edge(parent, nid, type=edge_type, role=role)
+        return nid, G
+
+    op = expr[0]
+
+    # Quantifier
+    if op in ("forall", "exists"):
+        nid = new_id()
+        G.add_node(nid, type="quantifier", label=op)
+
+        var = expr[1]
+        build_graph_from_ast_2(var, G, parent=nid, edge_type="binding")
+
+        body = expr[2]
+        build_graph_from_ast_2(body, G, parent=nid, edge_type="scope")
+
+        if parent:
+            G.add_edge(parent, nid, type=edge_type, role=role)
+        return nid, G
+
+    # Connectives
+    if op in ("and", "or", "not", "implies", "xor", "iff"):
+        nid = new_id()
+        G.add_node(nid, type="connective", label=op)
+        for child in expr[1:]:
+            build_graph_from_ast_2(child, G, parent=nid, edge_type="logical")
+        if parent:
+            G.add_edge(parent, nid, type=edge_type, role=role)
+        return nid, G
+
+    # Equality / inequality
+    if op in ("=", "!="):
+        nid = new_id()
+        G.add_node(nid, type="predicate", label=op)
+        build_graph_from_ast_2(expr[1], G, parent=nid, edge_type="arg", role="arg0")
+        build_graph_from_ast_2(expr[2], G, parent=nid, edge_type="arg", role="arg1")
+        if parent:
+            G.add_edge(parent, nid, type=edge_type, role=role)
+        return nid, G
+
+    # Predicate
+    nid = new_id()
+    G.add_node(nid, type="predicate", label=op)
+    for i, arg in enumerate(expr[1:]):
+        build_graph_from_ast_2(arg, G, parent=nid, edge_type="arg", role=f"arg{i}")
+        if parent:
+            G.add_edge(parent, nid, type=edge_type, role=role)
+    return nid, G
+
+def build_graph_2(fol_string: str) -> nx.DiGraph:
+    tokens = tokenize_fol_2(fol_string)
+    tokens = merge_constants_in_args(tokens)
+    ast = parse_fol_2(tokens)
+    root, G = build_graph_from_ast_2(ast)
+    G.nodes[root]["is_root"] = True
+    return G

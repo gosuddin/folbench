@@ -10,20 +10,6 @@ ted_structural_similarity,
 predicate_alignment_hungarian_similarity,
 folbench_score,
 )
-
-
-def ged(g1, g2):
-    if len(g1) == 0 and len(g2) == 0:
-        return 0.0
-    def node_match(n1, n2):
-        return n1.get("type") == n2.get("type") and n1.get("label") == n2.get("label")
-    def edge_match(e1, e2):
-        return e1.get("type") == e2.get("type") and e1.get("role") == e2.get("role")
-    dist = nx.graph_edit_distance(g1, g2, node_match=node_match, edge_match=edge_match)
-    max_possible = len(g1.nodes) + len(g2.nodes) + len(g1.edges) + len(g2.edges)
-    return dist / max_possible if max_possible > 0 else 0.0
-
-
 # -----------------------
 # Helper graph builders
 # -----------------------

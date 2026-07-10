@@ -8,9 +8,11 @@ from .visualize import visualize_fol_graph
 from .folbench_score import folbench_score
 
 from .utils import build_graph
+from .utils import build_graph_2
 
 __all__ = [
     "build_graph",
+    "build_graph_2",
     "predicate_argument_alignment_score",
     "quantifier_scope_similarity",
     "variable_binding_consistency",

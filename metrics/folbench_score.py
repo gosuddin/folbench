@@ -10,12 +10,12 @@ from metrics.cle import equivalence_score
 def folbench_score(
 g_pred: nx.DiGraph,
 g_gold: nx.DiGraph,
-w_paas: float = 0.20,
-w_qss: float = 0.20,
-w_vbc: float = 0.20,
-w_cle: float = 0.20,
-w_ted: float = 0.20,
-w_hungarian: float = 0.20,
+w_paas: float = 0.166,
+w_qss: float = 0.166,
+w_vbc: float = 0.166,
+w_cle: float = 0.166,
+w_ted: float = 0.166,
+w_hungarian: float = 0.166,
 ) -> float:
     """
     Composite FOLBench score as described in the paper:
