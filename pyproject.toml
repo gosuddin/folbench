@@ -1,0 +1,27 @@
+[project]
+name = "folbench"
+version = "0.1.0"
+description = "FOLBench: A Logic-Grounded Evaluation Suite for Evaluating Open-Ended Responses using Graph-Based Semantic Metrics on First-Order Logic form of Natural Language"
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+ { name="Gosuddin Kamaruddin Siddiqi", email="gosuddin@uw.edu" }
+]
+
+requires-python = ">=3.11"
+dependencies = [
+ "networkx>=3.5",
+ "matplotlib>=3.10.8",
+ "pytest>=9.0.3",
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["folbench", "folbench.metrics"]
+
+[tool.setuptools.package-dir]
+"folbench" = "."
+"folbench.metrics" = "metrics"
