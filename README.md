@@ -70,3 +70,17 @@ FOLBench Score = (w1*PAAS + w2*QSS + w3*VBC + w4*CLE + w5*TED + w6*HS)
 
 By default, all metrics have equal weight (0.16) but are customizable.
 
+## Citation
+
+If you use **FOLBench** in your research, evaluations, or projects, please cite it using the following BibTeX entry:
+
+```bibtex
+@misc{siddiqi2026folbench,
+  author       = {Siddiqi, Gosuddin Kamaruddin},
+  title        = {{FOLBench}: A Python Toolkit for Deterministic Evaluation of Natural Language to First-Order Logic Translation},
+  year         = {2026},
+  howpublished \(= {\url{https://github.com}},\)
+  note         = {PyPI package: \(\texttt{pip install folbench}\)}
+}
+```
+
