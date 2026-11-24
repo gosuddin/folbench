@@ -77,10 +77,11 @@ If you use **FOLBench** in your research, evaluations, or projects, please cite 
 ```bibtex
 @misc{siddiqi2026folbench,
   author       = {Siddiqi, Gosuddin Kamaruddin},
-  title        = {{FOLBench}: A Python Toolkit for Deterministic Evaluation of Natural Language to First-Order Logic Translation},
+  title        = {FOLBench: A Python Toolkit for Deterministic Evaluation of Natural Language to First-Order Logic Translation},
   year         = {2026},
-  howpublished \(= {\url{https://github.com}},\)
-  note         = {PyPI package: \(\texttt{pip install folbench}\)}
+  url          = {https://github.com/gosuddin/folbench},
+  note         = {PyPI package: pip install folbench}
 }
+
 ```
 
